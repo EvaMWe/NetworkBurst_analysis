@@ -1,0 +1,120 @@
+% spikeTimes = cell array containing the spike times per electrode
+% This is the main function for network burst analysiation according to the
+% moving firinge rate method 
+% Input (spikeTImes) is a cell array containing the data from one time bin
+% derived from one network (column = electrodes, rows: spikeTimes (in
+% seconds)
+
+% (1) cell array is transformed to a 1-D double arrays containing the
+% spike times (in seconds)
+
+% (2) spikeVec is sorting and passed to getBurst_movFR_NB --> main
+% algorthim for burst detection, returning the starts and stops of fast
+% bursts (intra spike interval is small) burstStart, burstStop
+
+% (3) burstStart, burstStop are passed to burstClusters, here near bursts
+% are merged and form long bursts (lburstStart,lburstStop);
+
+% (4) lburstStart, lburstStop are passed tp broadening: starts and stops of
+% clusters are refined --> Startclusters, Stopclusters
+
+function burstVar = getNB_movFR(spikeTimes, interval)
+%%convert to vector
+minNbContr = ceil(size(spikeTimes,2)*0.25);
+minBurstSpike = 5;
+minNbSpikes = minNbContr * minBurstSpike;
+[spikeVec,~] = conversion(spikeTimes, 2);
+spikeVec = sort(spikeVec);
+
+
+%% get Bursts 
+%% SHORT BURST
+% (1) fast burst candidats
+[burstStart_, burstStop_] = getBurst_movFR_NB(spikeVec);
+% (2) fast bursts: clean burst candidats
+[burstInfo_sh, ~, burstStart, burstStop] = burstExploration(burstStart_,burstStop_,spikeVec,spikeTimes, minNbSpikes);
+%% LONG BURST
+% (3) long burst candidats
+[lburstStart_,lburstStop_, burstletStart_, burstletStop_]= getBurstCluster_slope(burstStart_, burstStop_, spikeVec,0.3,0.3);
+
+% (4) long bursts and short bursts outside long bursts
+[~, ~, burstletStart, burstletStop] = burstExploration(burstletStart_,burstletStop_,spikeVec,spikeTimes,minNbSpikes);
+[lburstStart, lburstStop] = selectBydense(lburstStart_, lburstStop_, spikeVec);
+
+[burstInfo_l, ~, lburstStart, lburstStop] = burstExploration(lburstStart,lburstStop,spikeVec,spikeTimes,minNbSpikes*2);
+%% CLUSTER
+% (5) burst clusters and burstlets outside clusters
+[Startcluster_, Stopcluster_, remainersStart,remainersStop] = findAgglomerats(burstletStart, burstletStop, lburstStart_,lburstStop_, spikeVec);
+if ~isempty(Startcluster_) && ~isempty(Stopcluster_)
+    [Startcluster, Stopcluster] = selectBydense(Startcluster_, Stopcluster_, spikeVec);
+    [burstInfo_cl, ~, ~, ~] = burstExploration(Startcluster, Stopcluster,spikeVec,spikeTimes,minNbSpikes*2);
+else
+    Startcluster = [];
+    Stopcluster = [];
+    burstInfo_cl.nbcontribChannels = 0;
+end
+
+%% CLUSTER_PLUS_LONG_BURST_(CLB)
+% (6) LongBurst outside cluster and cluster CLB
+[StartComplete_, StopComplete_] = selectLong(remainersStart, lburstStart, lburstStop);
+
+if isempty(StartComplete_) || isempty(StopComplete_)
+    StartComplete =Startcluster;
+    StopComplete  = Stopcluster;
+elseif isempty(Startcluster) || isempty(Stopcluster)
+    StartComplete =StartComplete_;
+    StopComplete  = StopComplete_;
+else
+    StartComplete =sort([StartComplete_; Startcluster]);
+    StopComplete = sort([StopComplete_; Stopcluster]);
+end
+
+if length(StartComplete) ~= length(StopComplete)
+    [StartComplete,StopComplete] = reSeq(StartComplete,StopComplete);
+end
+
+[burstInfo_comp, ~, ~, ~] = burstExploration(StartComplete, StopComplete,spikeVec,spikeTimes,minNbSpikes*2);
+
+% (7) short Bursts outside clusters
+[SB_oCl_start, SB_oCl_stop] = cleanShort(Startcluster, Stopcluster, burstStart, burstStop);
+
+% (8) long bursts outside clusters 
+[LB_oCl_start, LB_oCl_stop] = cleanShort(Startcluster, Stopcluster, lburstStart, lburstStop);
+
+%(9) short bursts outside Complete
+[SB_oCompl_start, SB_oCompl_stop] = cleanShort(StartComplete, StopComplete, burstStart, burstStop);
+
+%(10) short bursts outside Complete
+[LB_oCompl_start, LB_oCompl_stop] = cleanShort(StartComplete, StopComplete, lburstStart, lburstStop);
+
+
+
+burstVar.spikeList = spikeVec;
+burstVar.spikeData = spikeTimes;
+burstVar.Interval = interval;
+burstVar.shortBurst_starts = burstStart;
+burstVar.shortBurst_stops = burstStop;
+burstVar.longBurst_starts = lburstStart;
+burstVar.longBurst_stops = lburstStop;
+burstVar.cluster_starts = Startcluster;
+burstVar.cluster_stops = Stopcluster;
+burstVar.SBstart_outsideLB = burstletStart;
+burstVar.SBstop_outsideLB = burstletStop;
+burstVar.ClusterLB_starts = StartComplete;
+burstVar.ClusterLB_stops = StopComplete;
+burstVar.SBstart_outsideCl = SB_oCl_start;
+burstVar.SBstop_outsideCl = SB_oCl_stop;
+burstVar.LBstart_outsideCl = LB_oCl_start;
+burstVar.LBstop_outsideCl = LB_oCl_stop;
+burstVar.SBstart_outsideCompl = SB_oCompl_start;
+burstVar.SBstop_outsideCompl = SB_oCompl_stop;
+burstVar.LBstart_outsideCompl = LB_oCompl_start;
+burstVar.LBstop_outsideCompl = LB_oCompl_stop;
+[burstVar.MContrCh_SB, burstVar.CV_ContrCh_SB, burstVar.Sk_ContrCh_SB] = statPara(extractfield(burstInfo_sh,'nbcontribChannels'));
+[burstVar.MContrCh_LB, burstVar.CV_ContrCh_LB, burstVar.Sk_ContrCh_LB] = statPara(extractfield(burstInfo_l,'nbcontribChannels'));
+[burstVar.MContrCh_Cl, burstVar.CV_ContrCh_Cl, burstVar.Sk_ContrCh_Cl] = statPara(extractfield(burstInfo_cl,'nbcontribChannels'));
+[burstVar.MContrCh_comp, burstVar.CV_ContrCh_comp, burstVar.Sk_ContrCh_comp] = statPara(extractfield(burstInfo_comp,'nbcontribChannels'));
+
+
+end
+
