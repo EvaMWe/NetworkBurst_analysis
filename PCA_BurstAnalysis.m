@@ -15,7 +15,7 @@
 %well_1|x11              |x12            |x13
 %well_2|x21              |x22            |x23        
 %well_n|x31              |x32            |x33
-%-----------------------------------------
+%----------------------------------------- 
 
 
 function finData = PCA_BurstAnalysis(varargin)

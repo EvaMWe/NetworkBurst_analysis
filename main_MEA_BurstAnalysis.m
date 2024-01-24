@@ -1,6 +1,6 @@
 %UMGESTALTUNG --> BURSTING TOOL --> UNDER CONSTRUCTION
 
-% This is a Burst Analysis Tool returning a bunch of novel burst parameter
+%% This is a Burst Analysis Tool returning a bunch of novel burst parameter
 % characterizing the phenotype of neurons cultured on MEA dishes
 %----15.06.2020
 %----written by Eva-Maria Weiss
@@ -9,6 +9,7 @@
 %        containing the spike data
 % main parts are therefore similar to 'MeaCalc'
 %
+%%
 % 
 % (1) Detection of valid electrodes
 % - for data cleaning
@@ -23,12 +24,10 @@
 %     of valid electrodes
 %
 % (3) Grouping of Data per Well
-    
+   
+%% INPUT: z defines the number of loaded file that will be used to clean data
 
 function resultCell = main_MEA_BurstAnalysis(varargin)
-
-%% set flags
-%default
 
 if nargin ~= 0    
     z = varargin{1};
@@ -105,19 +104,22 @@ for bin = 1:nbBin
         validnb = sum(spikeRate > 0.1);
         
         name = wellList(1,well);
-        
-        if validnb < 10 %miss number of valid electrodes condition
-           wellIdx = find(strcmp(validWells,name{1,1}));
-           resultCell(2:end,wellIdx+1,bin) = num2cell(nan);
-        else        
+  %      
+  %--another selection, but mostly not necessary, due to selection before
+  %(and for warlier time points conditions cannot be met)
+  %      if validnb < 10 %miss number of valid electrodes condition
+  %         wellIdx = find(strcmp(validWells,name{1,1}));
+  %         resultCell(2:end,wellIdx+1,bin) = num2cell(nan);
+   %     else        
         
         spikeTimes = wellList{2,well};
 %sprintf('%i_%i',well,bin)
         burstVar = getNB_movFR(spikeTimes, interval);
+        sprintf('well_%i',well)
         resultCell_onewell = featureCalculation(burstVar,interval,nbFeatures);
         wellIdx = find(strcmp(validWells,name{1,1}));
         resultCell(2:end,wellIdx+1,bin) = resultCell_onewell; 
-        end
+    %    end
     end   
    
 end

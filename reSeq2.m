@@ -8,7 +8,7 @@ function [Start, Stop]= reSeq2(start,stop,trace, varargin)
 %default
 recalc = 0;
 
-if nargin == 5
+if nargin == 4
     recalc = varargin{1};
 end
 
@@ -55,6 +55,10 @@ else
         Stop = stop;
     else
         
+        if difference(end) == 0
+            e2 = [e2 length(difference)+1];
+        end
+        
         if e1(1) > e2(1)
             e2 = e2(2:end);
         end
@@ -62,6 +66,7 @@ else
         if e1(end) > e2(end)
             e1 = e1(1:end-1);
         end
+        
         
         stopFin = arrayfun(@(a,b) getMin(a,b,stop,trace,recalc), e1, e2);
         prop_col_stops = difference > 0;
@@ -78,16 +83,15 @@ else
 end
 %% get indices of extra starts
 
-checkStarts = diff(difference == 2);
+checkStarts = diff(difference >= 2);
 if sum(checkStarts) == 0
     Start = start;
 else
     
-    e1_c = find(checkStarts == 1)+1;
-    e2_c = find(checkStarts == -1)+1;
-    
-    e1 = sum(logi(:,e1_c));
-    e2 = sum(logi(:,e2_c));
+    e1_c = find(checkStarts == 1);
+        
+    e1 = sum(logi(:,e1_c))+1;
+    e2 = sum(logi(:,e1_c+1));
     if length(e1) < 2 || length(e2) < 2
         Start = start;
     else
