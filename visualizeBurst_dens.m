@@ -1,0 +1,41 @@
+function visualizeBurst_dens(rateDiff, burstStart, burstStop, spikeTime)
+
+
+lineX = zeros(1,length(rateDiff));
+markerStart = lineX;
+if burstStart(1) <= 0
+    burstStart(1) = 1;
+end
+markerStart(burstStart) = 200;
+markerStartna = markerStart;
+markerStartna(markerStart == 0) = NaN;
+markerStop = lineX;
+markerStop(burstStop) = 180;
+markerStopna = markerStop;
+markerStopna(markerStopna == 0) = NaN;
+
+figure, hold on
+X = 1:length(rateDiff);
+plot(X, rateDiff);
+plot(X,markerStartna,'marker', '*')
+plot(X,markerStopna,'marker','*')
+
+%% spiketrain
+firstPos = min(spikeTime);
+lastPos =max(spikeTime);
+nbSamples = ceil(lastPos-firstPos);
+spikeSamples = spikeTime;
+spikeStemps = zeros(nbSamples,1);
+spikeStemps(spikeSamples) = 1;
+
+figure, hold on
+plot(1:nbSamples,spikeStemps(1:nbSamples),'marker', 'none')
+burstMarkerS = zeros(nbSamples,1);
+burstMarkerS(burstMarkerS==0) = NaN;
+burstMarkerS(ceil(spikeTime(burstStart))') = 1;
+plot(1:nbSamples,burstMarkerS(1:nbSamples),'marker', '*')
+burstMarkerE = zeros(nbSamples,1);
+burstMarkerE(burstMarkerE==0) = NaN;
+burstMarkerE(ceil(spikeTime(burstStop))') = 1;
+plot(1:nbSamples,burstMarkerE(1:nbSamples),'marker', '*')
+end

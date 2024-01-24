@@ -99,7 +99,7 @@ end
     
     %% select short bursts
     % starts
-    Bstart = repmat(burstStart',length(idxStart),1);
+    Bstart = repmat(burstStart',length(lBurstStart),1);
     Log1 = Bstart < lBurstStart;
     Log2 = Bstart > lBurstStop;
     Log = Log1 + Log2;

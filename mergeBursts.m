@@ -44,7 +44,9 @@ stop = stop(~isnan(stop));
 start(start==0) = [];
 stop(stop==0) = [];
 
-if check == 1
+[start,stop] = reSeq(start,stop);
+
+if check == 1 && length(start) == length(stop)
     nbSpikes = stop-start;
     logCh = nbSpikes > theta;
     start = start(logCh);

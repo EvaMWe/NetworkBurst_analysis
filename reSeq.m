@@ -18,6 +18,13 @@
 % END
 
 function [finStart,finStop]=reSeq(start,stop)
+
+if isempty(start) || isempty(stop)
+    finStart = [];
+    finStop = [];
+    return
+end
+
 if size(start,2) > 1
    start = start';
 end
@@ -26,9 +33,29 @@ if size(stop,2) >1
     stop = stop';
 end
 
-if length(start) < 2 || length(stop) < 2
-    finStart = start;
+if length(start) < 2     
+    if start(1) < stop(1) 
+    finStart = start(1);
+    finStop = stop(1);
+    elseif start > stop(1) && length(stop) > 1
+        finStart = start(1);
+        finStop = stop(2);
+    else
+        finStart = [];
+        finStop = [];
+    end
+        
+    return
+end
+
+if  length(stop) < 2
     finStop = stop;
+    finStart = start(1);
+    if start(1) > stop(1)
+        finStart = [];
+        finStop = [];
+    end  
+    
     return
 end
 

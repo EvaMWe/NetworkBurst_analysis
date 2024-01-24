@@ -8,17 +8,38 @@
 % type: 1 = input is time
 %       2 = input is spike stamp (iinteger)
 
+% sometimes the offset of the spiketimes has to be taken into account
+% spike times starts not for (near to) 0 --> offset is the first time point
+% off = 0 --> default; no calculation of offset;
+% off = 1 --> first data point is set as offset;
+
 function multiVisinOne(spikeTimes,burstStart,burstStop, varargin)
 type = 1;
+off = 0;
 
-if nargin == 4
+if nargin >= 4
     type = varargin{1};
 end
 
-spikeArray = conversion(spikeTimes,1);
-nbEl =size(spikeArray,2);
+if nargin == 5
+    off = varargin{2};
+end
+
+
 
 spikeVec = sort(conversion(spikeTimes,2));
+offset = spikeVec(1);
+if off == 1
+    spikeVec = spikeVec - offset;
+    spikeVec(spikeVec < 0) = 0;
+end
+
+spikeArray = conversion(spikeTimes,1);
+if off == 1
+    spikeArray = spikeArray-offset;
+    spikeArray(spikeArray < 0) = 0;
+end
+nbEl =size(spikeArray,2);
 
 firstPos = min(spikeVec)*12500;
 lastPos =max(spikeVec)*12500;

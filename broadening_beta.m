@@ -57,6 +57,14 @@ if size(spikeTimes,2) > 1
     spikeTimes = spikeTimes';
 end
 
+if size(start_temp,2) > 1
+    start_temp = start_temp';
+end
+
+if size(stop_temp,2) > 1
+    stop_temp = stop_temp';
+end
+
 nbSp = zeros(length(start_temp),1);
 summe = 1;
 adding = ones(length(start_temp),1);
@@ -105,9 +113,19 @@ end
 %% STOP
 function stop = stopDirection(stop_temp,start_temp, spikeTimes, cut, win)
 
+
 if size(spikeTimes,2) > 1
     spikeTimes = spikeTimes';
 end
+
+if size(start_temp,2) > 1
+    start_temp = start_temp';
+end
+
+if size(stop_temp,2) > 1
+    stop_temp = stop_temp';
+end
+
 
 nbSp = zeros(length(stop_temp),1);
 summe = 1;

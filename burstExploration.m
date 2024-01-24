@@ -2,14 +2,15 @@ function [burstInfo, burstID, start, stop] = burstExploration(start,stop,spikeVe
 %default
 %theta = 10;
 minContr = 5;
+minSpk = 3;
 nb_burst = length(start);
 burstInfo = repmat(struct('burstNumber',1),nb_burst,1);
 burstID = zeros(nb_burst,1);
 count = 1;
 
-% if nargin >= 5
-%     theta = varargin{1};
-% end
+if nargin >= 5
+    minSpk = varargin{1};
+end
 
 if nargin == 6
     minContr = varargin{2};
@@ -52,7 +53,7 @@ for burst = 1:nb_burst
     nbContr = length(contributors);
     nbSpikes = stop(burst)-start(burst) +1;
     burstInfo(count).burstNumber=burst;
-    if nbContr >= minContr && nbSpikes >= nbContr*2                
+    if nbContr >= minContr && nbSpikes >= nbContr*minSpk                
         burstInfo(count).burstSubscripts = [Arow,Acol];
         burstInfo(count).contribChannels = contributors;
         burstInfo(count).nbcontribChannels = nbContr;

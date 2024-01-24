@@ -18,6 +18,13 @@ if length(burstStart) ~= length(burstStop)
     [burstStart, burstStop] = reSeq(burstStart,burstStop);
 end
 
+if size(burstStart,2) > 1
+    burstStart = burstStart';
+end
+
+if size(burstStop,2) > 1
+    burstStop = burstStop';
+end
 Bstart = repmat(burstStart',length(Startcluster),1); 
 Log1 = Bstart < Startcluster;
 Log2 = Bstart > Stopcluster;

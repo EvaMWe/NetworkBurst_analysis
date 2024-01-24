@@ -3,8 +3,15 @@
 
 
 function [shortStart, shortStop, nbInsiders] = selectShinLong(startShort, stopShort, startLong, stopLong)
+%%%CHECK FOR DIMENSIONS!!!
+if size(startShort,2) ==1
+    startShort = startShort';
+end
+if size(stopShort,2) ==1
+    stopShort = stopShort';
+end
 
-Bstart = repmat(startShort',length(startLong),1); 
+Bstart = repmat(startShort,length(startLong),1); 
 Log1 = Bstart >= startLong;
 Log2 = Bstart <= stopLong;
 Log = Log1.*Log2;

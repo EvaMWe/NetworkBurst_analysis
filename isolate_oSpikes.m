@@ -3,7 +3,11 @@
 
 
 function [outsideSpikes] = isolate_oSpikes(startBurst,stopBurst, spikeList)
-indexVec = 1:length(spikeList);
+if size(startBurst,2)>1
+    startBurst = startBurst';
+    stopBurst = stopBurst';
+end
+indexVec = (1:length(spikeList));
 Bstart = repmat(indexVec ,length(startBurst),1); 
 Log1 = Bstart < startBurst;
 Log2 = Bstart > stopBurst;
